@@ -52,7 +52,49 @@ def clean_markdown(md_content: str, title: str = None) -> str:
         if not first_line.startswith(f"# {title}"):
             md_content = f"# {title}\n\n{md_content}"
     
+    # Renumber ordered lists (1. ... 1. ... -> 1. ... 2. ...)
+    # Logic: If we see a "1." and we recently saw a list item, increment.
+    # Reset if we see a Header.
+    lines = md_content.split('\n')
+    new_lines = []
+    counter = 0
+    
+    for line in lines:
+        # Match lines starting with "1. " or "2. " etc
+        match = re.match(r'^(\d+)\.\s(.*)', line)
+        if match:
+            # If it's "1." specifically, or if we are in a sequence
+            # We assume it's a continuation if counter > 0
+            # But if it's "1." again, it might be a restart or a broken list.
+            # Given the user's case (Docling outputting 1. 1. 1.), we should increment.
+            
+            # If we see a "1." and counter is 0, start at 1.
+            # If we see a "1." and counter is > 0, treat as next item (counter+1).
+            
+            original_num = int(match.group(1))
+            
+            if original_num == 1:
+                # It could be the start of a new list OR the next item in a broken list.
+                # Heuristic: If we are 'tracking' a list (counter>0), treat 1. as the next item.
+                counter += 1
+            else:
+                # If it's "2.", "3.", trust it but sync counter
+                counter = original_num
+            
+            new_lines.append(f"{counter}. {match.group(2)}")
+        else:
+            new_lines.append(line)
+            # Reset counter on Headers or significant layout breaks?
+            # Images should NOT reset counter.
+            # Empty lines should NOT reset counter.
+            # Regular text? Maybe. But let's be loose -> Only headers reset.
+            if line.strip().startswith('#'):
+                counter = 0
+
+    md_content = '\n'.join(new_lines)
+    
     return md_content.strip()
+
 
 def create_docmost_zip(markdown_content: str, images: List[Dict[str, Any]] = None, title: str = None) -> bytes:
     """
