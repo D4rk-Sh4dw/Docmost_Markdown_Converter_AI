@@ -8,16 +8,21 @@ from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
 
-def clean_markdown(md_content: str) -> str:
+def clean_markdown(md_content: str, title: str = None) -> str:
     """
     Cleans markdown content according to Docmost compatibility rules.
+    - Adds Title as H1 if provided.
     - Removes multiple blank lines.
     - Fixes broken line breaks (heuristic).
     - Removes metadata/YAML headers if any.
+    - Removes Docling specific artifacts (<!-- image -->, etc.)
     """
     # Remove YAML frontmatter if present (lines between --- and --- at start)
     md_content = re.sub(r'^---\n.*?\n---\n', '', md_content, flags=re.DOTALL)
     
+    # Docling often leaves <!-- image --> or <!-- table --> comments
+    md_content = re.sub(r'<!--.*?-->', '', md_content, flags=re.DOTALL)
+
     # Remove multiple blank lines (more than 2)
     md_content = re.sub(r'\n{3,}', '\n\n', md_content)
     
@@ -27,9 +32,16 @@ def clean_markdown(md_content: str) -> str:
     # Docmost specific: Remove HTML tags if any leaked
     md_content = re.sub(r'<[^>]+>', '', md_content)
     
+    # Add Title if provided
+    if title:
+        # Check if title already exists as first line H1
+        first_line = md_content.strip().split('\n')[0]
+        if not first_line.startswith(f"# {title}"):
+            md_content = f"# {title}\n\n{md_content}"
+    
     return md_content.strip()
 
-def create_docmost_zip(markdown_content: str, images: List[Dict[str, Any]] = None) -> bytes:
+def create_docmost_zip(markdown_content: str, images: List[Dict[str, Any]] = None, title: str = None) -> bytes:
     """
     Creates a ZIP file compatible with Docmost import.
     Structure:
@@ -90,7 +102,7 @@ def create_docmost_zip(markdown_content: str, images: List[Dict[str, Any]] = Non
     new_markdown = data_uri_pattern.sub(replace_data_uri, markdown_content)
     
     # Clean up the markdown finally
-    new_markdown = clean_markdown(new_markdown)
+    new_markdown = clean_markdown(new_markdown, title=title)
     
     # Create ZIP in memory
     zip_buffer = io.BytesIO()

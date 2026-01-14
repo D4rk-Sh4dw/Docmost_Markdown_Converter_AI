@@ -81,15 +81,17 @@ async def handle_upload(file: UploadFile = File(...)):
     # and let create_docmost_zip extract them.
     images = []
 
+    # 4. Prepare Output Filename & Title
+    filename_stem = os.path.splitext(file.filename)[0]
+
     # 3. Create ZIP
     try:
-        zip_bytes = create_docmost_zip(markdown_content, images)
+        zip_bytes = create_docmost_zip(markdown_content, images, title=filename_stem)
     except Exception as e:
         logger.error(f"Post-processing failed: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate ZIP: {str(e)}")
 
     # 4. Return ZIP
-    filename_stem = os.path.splitext(file.filename)[0]
     output_filename = f"{filename_stem}_docmost.zip"
     
     return Response(
