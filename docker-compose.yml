@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   converter-ui:
-    build: ./converter_ui
+    # Build directly from GitHub Repository
+    build: https://github.com/D4rk-Sh4dw/Docmost_Markdown_Converter.git#main:converter_ui
     container_name: converter-ui
     ports:
       - "3000:3000"
@@ -18,7 +19,8 @@ services:
   # Optional: Internal Docling Server (Comment out if using external)
   # Mimics the official docling-serve on port 5001
   docling-server:
-    build: ./docling_server
+    # Build directly from GitHub Repository
+    build: https://github.com/D4rk-Sh4dw/Docmost_Markdown_Converter.git#main:docling_server
     container_name: docling-server
     environment:
       - OMP_NUM_THREADS=4
