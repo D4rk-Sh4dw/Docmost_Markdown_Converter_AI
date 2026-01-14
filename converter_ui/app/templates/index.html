@@ -1,148 +1,429 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Docmost Converter</title>
+    <title>DOCMOST // CONVERTER</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;700&display=swap"
+        rel="stylesheet">
     <style>
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-green: #00ff41;
+            --dark-bg: #050510;
+            --panel-bg: rgba(10, 10, 30, 0.6);
+            --border-color: rgba(0, 243, 255, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f6f8;
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--dark-bg);
+            background-image:
+                linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: #fff;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            color: #333;
+            overflow: hidden;
+            position: relative;
         }
+
+        /* Animated Background Gradient */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(0, 243, 255, 0.1) 0%, transparent 60%);
+            animation: pulse-bg 10s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes pulse-bg {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 0.8;
+            }
+        }
+
         .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 480px;
-            text-align: center;
-        }
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 1.5rem;
-        }
-        .upload-area {
-            border: 2px dashed #cbd5e0;
-            border-radius: 6px;
+            max-width: 600px;
             padding: 2rem;
-            margin-bottom: 1.5rem;
-            cursor: pointer;
-            transition: border-color 0.2s;
+            position: relative;
         }
-        .upload-area:hover {
-            border-color: #4299e1;
-        }
-        button {
-            background-color: #4299e1;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
+
+        /* Glass Panel */
+        .panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
             border-radius: 4px;
-            font-size: 1rem;
-            cursor: pointer;
-            width: 100%;
-            transition: background 0.2s;
+            padding: 3rem;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
+            overflow: hidden;
         }
-        button:hover {
-            background-color: #3182ce;
+
+        /* Corner Accents */
+        .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--neon-blue);
+            transition: all 0.3s ease;
         }
-        button:disabled {
-            background-color: #a0aec0;
-            cursor: not-allowed;
+
+        .tl {
+            top: 0;
+            left: 0;
+            border-bottom: none;
+            border-right: none;
         }
-        #message {
-            margin-top: 1rem;
-            font-size: 0.9rem;
+
+        .tr {
+            top: 0;
+            right: 0;
+            border-bottom: none;
+            border-left: none;
         }
-        .error { color: #e53e3e; }
-        .success { color: #38a169; }
-        .spinner {
-            display: none;
-            margin: 10px auto;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
+
+        .bl {
+            bottom: 0;
+            left: 0;
+            border-top: none;
+            border-right: none;
+        }
+
+        .br {
+            bottom: 0;
+            right: 0;
+            border-top: none;
+            border-left: none;
+        }
+
+        .panel:hover .corner {
             width: 30px;
             height: 30px;
-            animation: spin 1s linear infinite;
+            box-shadow: 0 0 10px var(--neon-blue);
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: white;
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        h1 span {
+            color: var(--neon-blue);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #889;
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Upload Zone */
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover {
+            border-color: var(--neon-pink);
+            background: rgba(255, 0, 255, 0.05);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--neon-blue);
+            transition: transform 0.3s ease;
+        }
+
+        .upload-area:hover .upload-icon {
+            transform: translateY(-5px) scale(1.1);
+            color: var(--neon-pink);
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+
+        .file-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: #ccc;
+            letter-spacing: 1px;
+        }
+
+        /* Button */
+        button {
+            width: 100%;
+            margin-top: 2rem;
+            padding: 1.2rem;
+            background: transparent;
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--neon-green);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        button:hover {
+            color: #000;
+            box-shadow: 0 0 20px var(--neon-green);
+        }
+
+        button:hover::before {
+            left: 0;
+        }
+
+        button:disabled {
+            border-color: #555;
+            color: #555;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        button:disabled::before {
+            background: transparent;
+        }
+
+        /* Status & Terminal */
+        .status-container {
+            margin-top: 2rem;
+            min-height: 40px;
+        }
+
+        .terminal-line {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--neon-blue);
+            text-align: left;
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+            border-left: 2px solid var(--neon-green);
+            padding-left: 10px;
+            margin-bottom: 5px;
+        }
+
+        .terminal-line.error {
+            color: var(--neon-pink);
+            border-color: var(--neon-pink);
+        }
+
+        .terminal-line.success {
+            color: var(--neon-green);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Loader */
+        .scanner {
+            height: 2px;
+            background: var(--neon-blue);
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: scan 2s linear infinite;
+            display: none;
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0%;
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                top: 100%;
+                opacity: 0;
+            }
+        }
+
+        /* Glitch Effect */
+        .glitch-wrapper {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.3);
+            font-family: monospace;
+        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Docmost Converter</h1>
-        <p>Convert PDF, DOCX, XLSX to Docmost ZIP</p>
-        
-        <form id="uploadForm">
-            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                <p id="fileName">Click to select a file</p>
-                <input type="file" id="fileInput" name="file" accept=".pdf,.docx,.xlsx" style="display: none" onchange="updateFileName()">
-            </div>
-            
-            <button type="submit" id="submitBtn">Convert & Download</button>
-        </form>
 
-        <div class="spinner" id="loading"></div>
-        <div id="message"></div>
+<body>
+
+    <div class="container">
+        <div class="panel">
+            <div class="scanner" id="scanner"></div>
+
+            <!-- Corners -->
+            <div class="corner tl"></div>
+            <div class="corner tr"></div>
+            <div class="corner bl"></div>
+            <div class="corner br"></div>
+
+            <h1>Docmost <span>Converter</span></h1>
+            <p class="subtitle">System Ready // Waiting for Input</p>
+
+            <form id="uploadForm">
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">⇪</div>
+                    <p class="file-name" id="fileName">DROP FILE OR CLICK TO INITIALIZE</p>
+                    <input type="file" id="fileInput" name="file" accept=".pdf,.docx,.xlsx" style="display: none"
+                        onchange="updateFileName()">
+                </div>
+
+                <div class="status-container" id="statusOutput"></div>
+
+                <button type="submit" id="submitBtn">Initialize Sequence</button>
+            </form>
+
+            <div class="glitch-wrapper">SYS.VER.2.0.4 // ONLINE</div>
+        </div>
     </div>
 
     <script>
         function updateFileName() {
             const input = document.getElementById('fileInput');
             const display = document.getElementById('fileName');
+            const btn = document.getElementById('submitBtn');
+
             if (input.files.length > 0) {
                 display.innerText = input.files[0].name;
+                display.style.color = 'var(--neon-blue)';
+                log(`File selected: ${input.files[0].name}`);
+                btn.style.borderColor = 'var(--neon-blue)';
+                btn.style.color = 'var(--neon-blue)';
             } else {
-                display.innerText = "Click to select a file";
+                display.innerText = "DROP FILE OR CLICK TO INITIALIZE";
+                display.style.color = '#ccc';
             }
+        }
+
+        function log(text, type = 'info') {
+            const container = document.getElementById('statusOutput');
+            const line = document.createElement('div');
+            line.className = `terminal-line ${type}`;
+            line.innerText = `> ${text}`;
+            container.innerHTML = ''; // Clear previous
+            container.appendChild(line);
         }
 
         document.getElementById('uploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const fileInput = document.getElementById('fileInput');
-            const message = document.getElementById('message');
-            const loading = document.getElementById('loading');
             const btn = document.getElementById('submitBtn');
+            const scanner = document.getElementById('scanner');
 
             if (fileInput.files.length === 0) {
-                message.className = 'error';
-                message.innerText = 'Please select a file first.';
+                log('ERROR: No Input Detected', 'error');
                 return;
             }
 
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
 
-            message.innerText = '';
-            loading.style.display = 'block';
+            log('Initializing upload sequence...', 'info');
             btn.disabled = true;
+            btn.innerText = "PROCESSING...";
+            scanner.style.display = 'block';
 
             try {
+                // Simulate some "hacking" steps for effect
+                await new Promise(r => setTimeout(r, 600));
+                log('Establishing uplink to neural net...', 'info');
+                await new Promise(r => setTimeout(r, 800));
+                log('Transmitting payload...', 'info');
+
                 const response = await fetch('/upload', {
                     method: 'POST',
                     body: formData
                 });
 
                 if (response.ok) {
+                    log('Processing complete. Downloading artifacts.', 'success');
+
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    // Try to get filename from header or default
+
                     let filename = "docmost-export.zip";
                     const disposition = response.headers.get('Content-Disposition');
                     if (disposition && disposition.indexOf('attachment') !== -1) {
                         const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
                         const matches = filenameRegex.exec(disposition);
-                        if (matches != null && matches[1]) { 
+                        if (matches != null && matches[1]) {
                             filename = matches[1].replace(/['"]/g, '');
                         }
                     }
@@ -150,26 +431,62 @@
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);
-                    message.className = 'success';
-                    message.innerText = 'Conversion successful! Download started.';
+
+                    btn.innerText = "SUCCESS";
+                    btn.style.borderColor = 'var(--neon-green)';
+                    btn.style.color = 'var(--neon-green)';
+
                 } else {
                     const errorText = await response.text();
+                    let errMsg = 'Upload failed';
                     try {
                         const errJson = JSON.parse(errorText);
-                        message.innerText = `Error: ${errJson.detail || 'Upload failed'}`;
+                        errMsg = errJson.detail || errMsg;
                     } catch {
-                        message.innerText = `Error: ${errorText}`;
+                        errMsg = errorText;
                     }
-                    message.className = 'error';
+                    log(`CRITICAL FAIL: ${errMsg}`, 'error');
+                    btn.innerText = "RETRY";
                 }
             } catch (error) {
-                message.className = 'error';
-                message.innerText = `Network Error: ${error.message}`;
+                log(`NETWORK FAILURE: ${error.message}`, 'error');
+                btn.innerText = "RETRY";
             } finally {
-                loading.style.display = 'none';
+                scanner.style.display = 'none';
                 btn.disabled = false;
+                if (btn.innerText === "RETRY" || btn.innerText === "SUCCESS") {
+                    setTimeout(() => btn.innerText = "Initialize Sequence", 3000);
+                }
             }
         });
+
+        // Drag and Drop visual
+        const dropZone = document.querySelector('.upload-area');
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--neon-green)';
+            dropZone.style.background = 'rgba(0, 255, 65, 0.1)';
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            dropZone.style.background = 'rgba(0, 0, 0, 0.3)';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            dropZone.style.background = 'rgba(0, 0, 0, 0.3)';
+            const input = document.getElementById('fileInput');
+            if (e.dataTransfer.files.length) {
+                input.files = e.dataTransfer.files;
+                updateFileName();
+            }
+        });
+
     </script>
 </body>
+
 </html>
