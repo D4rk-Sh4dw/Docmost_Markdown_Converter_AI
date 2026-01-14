@@ -45,7 +45,16 @@ async def handle_upload(file: UploadFile = File(...)):
             # For now sending just files. 
             
             logger.info(f"Sending to Docling Server at {DOCLING_SERVER_URL}/v1/convert/file...")
-            response = await client.post(f"{DOCLING_SERVER_URL}/v1/convert/file", files=files)
+            
+            # Options to ensure best quality / layout analysis
+            # We enable OCR and Table Structure to match 'full' docling capabilities
+            options = {
+                "do_ocr": "true",
+                "do_table_structure": "true", 
+                "ocr_engine": "easyocr" # Explicitly request easyocr to be safe
+            }
+            
+            response = await client.post(f"{DOCLING_SERVER_URL}/v1/convert/file", files=files, data=options)
             
             if response.status_code != 200:
                 logger.error(f"Docling Server Error: {response.text}")
