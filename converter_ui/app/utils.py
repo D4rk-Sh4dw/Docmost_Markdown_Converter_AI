@@ -29,8 +29,13 @@ def clean_markdown(md_content: str, title: str = None) -> str:
     # Ensure headers have space after #
     md_content = re.sub(r'^(#+)([^ \n])', r'\1 \2', md_content, flags=re.MULTILINE)
     
-    # Docmost specific: Remove HTML tags if any leaked
-    md_content = re.sub(r'<[^>]+>', '', md_content)
+    # Docmost specific: Remove known structural HTML tags that might break layout
+    # but preserve generic text like <Value> by not using a blanket remove.
+    # We remove common block tags that Docling might allow through.
+    md_content = re.sub(r'</?(div|span|html|body|head|script|style|iframe|link|meta).*?>', '', md_content, flags=re.IGNORECASE)
+    
+    # Can also remove empty specific tags if needed, but safer to leave text alone.
+
     
     # Add Title if provided
     if title:
