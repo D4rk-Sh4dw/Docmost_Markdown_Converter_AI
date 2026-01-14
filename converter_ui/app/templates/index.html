@@ -4,18 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DOCMOST // CONVERTER</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;700&display=swap"
-        rel="stylesheet">
+    <title>Docmost Converter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --neon-blue: #00f3ff;
-            --neon-pink: #ff00ff;
-            --neon-green: #00ff41;
-            --dark-bg: #050510;
-            --panel-bg: rgba(10, 10, 30, 0.6);
-            --border-color: rgba(0, 243, 255, 0.3);
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --accent: #ec4899;
+            --text-main: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         * {
@@ -25,331 +26,295 @@
         }
 
         body {
-            font-family: 'Rajdhani', sans-serif;
-            background-color: var(--dark-bg);
-            background-image:
-                linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
-            background-size: 30px 30px;
-            color: #fff;
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: var(--text-main);
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            position: relative;
         }
 
-        /* Animated Background Gradient */
-        body::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at center, rgba(0, 243, 255, 0.1) 0%, transparent 60%);
-            animation: pulse-bg 10s ease-in-out infinite;
+        /* Fluid Mesh Gradient Background */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             z-index: -1;
+            background:
+                radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+                radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
         }
 
-        @keyframes pulse-bg {
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--primary);
+            top: -100px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: var(--secondary);
+            bottom: -50px;
+            right: -50px;
+            animation-delay: -5s;
+        }
+
+        .orb-3 {
+            width: 250px;
+            height: 250px;
+            background: var(--accent);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
 
             0%,
             100% {
-                transform: scale(1);
-                opacity: 0.5;
+                transform: translate(0, 0);
             }
 
-            50% {
-                transform: scale(1.2);
-                opacity: 0.8;
+            33% {
+                transform: translate(30px, -50px);
+            }
+
+            66% {
+                transform: translate(-20px, 20px);
             }
         }
 
-        .container {
-            width: 100%;
-            max-width: 600px;
-            padding: 2rem;
-            position: relative;
-        }
-
-        /* Glass Panel */
-        .panel {
-            background: var(--panel-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
+        /* Main Glass Card */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
             padding: 3rem;
-            position: relative;
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
-            overflow: hidden;
-        }
-
-        /* Corner Accents */
-        .corner {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--neon-blue);
-            transition: all 0.3s ease;
-        }
-
-        .tl {
-            top: 0;
-            left: 0;
-            border-bottom: none;
-            border-right: none;
-        }
-
-        .tr {
-            top: 0;
-            right: 0;
-            border-bottom: none;
-            border-left: none;
-        }
-
-        .bl {
-            bottom: 0;
-            left: 0;
-            border-top: none;
-            border-right: none;
-        }
-
-        .br {
-            bottom: 0;
-            right: 0;
-            border-top: none;
-            border-left: none;
-        }
-
-        .panel:hover .corner {
-            width: 30px;
-            height: 30px;
-            box-shadow: 0 0 10px var(--neon-blue);
-        }
-
-        h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2.5rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             text-align: center;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            color: white;
-            text-shadow: 0 0 10px var(--neon-blue);
-        }
-
-        h1 span {
-            color: var(--neon-blue);
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #889;
-            margin-bottom: 3rem;
-            font-size: 1.1rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        /* Upload Zone */
-        .upload-area {
-            border: 2px dashed rgba(255, 255, 255, 0.2);
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 4px;
-            padding: 3rem 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             position: relative;
             overflow: hidden;
         }
 
-        .upload-area:hover {
-            border-color: var(--neon-pink);
-            background: rgba(255, 0, 255, 0.05);
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
+        @keyframes slideUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
-        .upload-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: var(--neon-blue);
-            transition: transform 0.3s ease;
-        }
-
-        .upload-area:hover .upload-icon {
-            transform: translateY(-5px) scale(1.1);
-            color: var(--neon-pink);
-            text-shadow: 0 0 10px var(--neon-pink);
-        }
-
-        .file-name {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.9rem;
-            color: #ccc;
-            letter-spacing: 1px;
-        }
-
-        /* Button */
-        button {
-            width: 100%;
-            margin-top: 2rem;
-            padding: 1.2rem;
-            background: transparent;
-            border: 1px solid var(--neon-green);
-            color: var(--neon-green);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.1rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
-        }
-
-        button::before {
+        .glass-card::before {
             content: '';
             position: absolute;
             top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: var(--neon-green);
-            transition: left 0.3s ease;
-            z-index: -1;
-        }
-
-        button:hover {
-            color: #000;
-            box-shadow: 0 0 20px var(--neon-green);
-        }
-
-        button:hover::before {
             left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
         }
 
-        button:disabled {
-            border-color: #555;
-            color: #555;
-            cursor: not-allowed;
-            box-shadow: none;
+        h1 {
+            font-weight: 600;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #fff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        button:disabled::before {
-            background: transparent;
+        p.subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 2.5rem;
         }
 
-        /* Status & Terminal */
-        .status-container {
-            margin-top: 2rem;
-            min-height: 40px;
+        /* Upload Area */
+        .upload-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: rgba(0, 0, 0, 0.2);
         }
 
-        .terminal-line {
-            font-family: 'Courier New', monospace;
+        .upload-zone:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.03);
+            transform: translateY(-2px);
+        }
+
+        .icon-container {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .upload-zone:hover .icon-container {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .icon-svg {
+            width: 32px;
+            height: 32px;
+            fill: white;
+        }
+
+        .file-status {
             font-size: 0.9rem;
-            color: var(--neon-blue);
-            text-align: left;
-            opacity: 0;
-            animation: fadeIn 0.3s forwards;
-            border-left: 2px solid var(--neon-green);
-            padding-left: 10px;
-            margin-bottom: 5px;
+            color: var(--text-secondary);
+            transition: color 0.2s;
         }
 
-        .terminal-line.error {
-            color: var(--neon-pink);
-            border-color: var(--neon-pink);
-        }
-
-        .terminal-line.success {
-            color: var(--neon-green);
-        }
-
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-            }
-        }
-
-        /* Loader */
-        .scanner {
-            height: 2px;
-            background: var(--neon-blue);
+        /* Action Button */
+        .btn-grad {
+            background-image: linear-gradient(to right, var(--primary) 0%, var(--secondary) 51%, var(--primary) 100%);
+            margin: 2rem auto 0;
+            padding: 1rem 2.5rem;
+            text-align: center;
+            text-transform: uppercase;
+            transition: 0.5s;
+            background-size: 200% auto;
+            color: white;
+            box-shadow: 0 0 20px #eeeeee15;
+            border-radius: 12px;
+            border: none;
+            display: block;
             width: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            animation: scan 2s linear infinite;
-            display: none;
-            box-shadow: 0 0 10px var(--neon-blue);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            letter-spacing: 0.5px;
         }
 
-        @keyframes scan {
+        .btn-grad:hover {
+            background-position: right center;
+            /* change the direction of the change here */
+            color: #fff;
+            text-decoration: none;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 30px -10px rgba(168, 85, 247, 0.6);
+        }
+
+        .btn-grad:disabled {
+            background: #334155;
+            color: #94a3b8;
+            cursor: default;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Progress / Status */
+        .status-area {
+            margin-top: 1.5rem;
+            min-height: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loader {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #fff;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            animation: rotation 1s linear infinite;
+            margin-right: 10px;
+            display: none;
+        }
+
+        @keyframes rotation {
             0% {
-                top: 0%;
-                opacity: 0;
-            }
-
-            10% {
-                opacity: 1;
-            }
-
-            90% {
-                opacity: 1;
+                transform: rotate(0deg);
             }
 
             100% {
-                top: 100%;
-                opacity: 0;
+                transform: rotate(360deg);
             }
         }
 
-        /* Glitch Effect */
-        .glitch-wrapper {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            font-size: 0.7rem;
-            color: rgba(255, 255, 255, 0.3);
-            font-family: monospace;
+        .message {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .message.success {
+            color: #4ade80;
+        }
+
+        .message.error {
+            color: #f87171;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="container">
-        <div class="panel">
-            <div class="scanner" id="scanner"></div>
+    <div class="background">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
 
-            <!-- Corners -->
-            <div class="corner tl"></div>
-            <div class="corner tr"></div>
-            <div class="corner bl"></div>
-            <div class="corner br"></div>
+    <div class="glass-card">
+        <h1>Docmost Converter</h1>
+        <p class="subtitle">Transform documents into clean Markdown.</p>
 
-            <h1>Docmost <span>Converter</span></h1>
-            <p class="subtitle">System Ready // Waiting for Input</p>
-
-            <form id="uploadForm">
-                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                    <div class="upload-icon">⇪</div>
-                    <p class="file-name" id="fileName">DROP FILE OR CLICK TO INITIALIZE</p>
-                    <input type="file" id="fileInput" name="file" accept=".pdf,.docx,.xlsx" style="display: none"
-                        onchange="updateFileName()">
+        <form id="uploadForm">
+            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                <div class="icon-container">
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                        <path
+                            d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+                    </svg>
                 </div>
+                <p id="fileName" class="file-status">Click just here to select PDF, DOCX, or XLSX</p>
+                <input type="file" id="fileInput" name="file" accept=".pdf,.docx,.xlsx" style="display: none"
+                    onchange="updateFileName()">
+            </div>
 
-                <div class="status-container" id="statusOutput"></div>
+            <div class="status-area">
+                <span class="loader" id="loader"></span>
+                <span class="message" id="message"></span>
+            </div>
 
-                <button type="submit" id="submitBtn">Initialize Sequence</button>
-            </form>
-
-            <div class="glitch-wrapper">SYS.VER.2.0.4 // ONLINE</div>
-        </div>
+            <button type="submit" class="btn-grad" id="submitBtn">Convert Document</button>
+        </form>
     </div>
 
     <script>
@@ -357,61 +322,52 @@
             const input = document.getElementById('fileInput');
             const display = document.getElementById('fileName');
             const btn = document.getElementById('submitBtn');
+            const zone = document.querySelector('.upload-zone');
 
             if (input.files.length > 0) {
                 display.innerText = input.files[0].name;
-                display.style.color = 'var(--neon-blue)';
-                log(`File selected: ${input.files[0].name}`);
-                btn.style.borderColor = 'var(--neon-blue)';
-                btn.style.color = 'var(--neon-blue)';
+                display.style.color = 'white';
+                display.style.fontWeight = '600';
+                zone.style.borderColor = 'var(--primary)';
+                background: 'rgba(255, 255, 255, 0.08)';
             } else {
-                display.innerText = "DROP FILE OR CLICK TO INITIALIZE";
-                display.style.color = '#ccc';
+                display.innerText = "Click just here to select PDF, DOCX, or XLSX";
+                display.style.color = 'var(--text-secondary)';
+                display.style.fontWeight = '400';
             }
-        }
-
-        function log(text, type = 'info') {
-            const container = document.getElementById('statusOutput');
-            const line = document.createElement('div');
-            line.className = `terminal-line ${type}`;
-            line.innerText = `> ${text}`;
-            container.innerHTML = ''; // Clear previous
-            container.appendChild(line);
         }
 
         document.getElementById('uploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const fileInput = document.getElementById('fileInput');
             const btn = document.getElementById('submitBtn');
-            const scanner = document.getElementById('scanner');
+            const loader = document.getElementById('loader');
+            const msg = document.getElementById('message');
 
             if (fileInput.files.length === 0) {
-                log('ERROR: No Input Detected', 'error');
+                msg.innerText = "Please select a file first";
+                msg.className = "message error";
                 return;
             }
 
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
 
-            log('Initializing upload sequence...', 'info');
             btn.disabled = true;
-            btn.innerText = "PROCESSING...";
-            scanner.style.display = 'block';
+            btn.innerText = "Processing...";
+            loader.style.display = 'inline-block';
+            msg.innerText = "Uploading & Converting...";
+            msg.className = "message";
 
             try {
-                // Simulate some "hacking" steps for effect
-                await new Promise(r => setTimeout(r, 600));
-                log('Establishing uplink to neural net...', 'info');
-                await new Promise(r => setTimeout(r, 800));
-                log('Transmitting payload...', 'info');
-
                 const response = await fetch('/upload', {
                     method: 'POST',
                     body: formData
                 });
 
                 if (response.ok) {
-                    log('Processing complete. Downloading artifacts.', 'success');
+                    msg.innerText = "Conversion successful. Downloading...";
+                    msg.className = "message success";
 
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
@@ -432,60 +388,59 @@
                     a.click();
                     window.URL.revokeObjectURL(url);
 
-                    btn.innerText = "SUCCESS";
-                    btn.style.borderColor = 'var(--neon-green)';
-                    btn.style.color = 'var(--neon-green)';
+                    btn.innerText = "Done";
+                    setTimeout(() => {
+                        btn.innerText = "Convert Document";
+                        btn.disabled = false;
+                        loader.style.display = 'none';
+                    }, 3000);
 
                 } else {
                     const errorText = await response.text();
                     let errMsg = 'Upload failed';
                     try {
-                        const errJson = JSON.parse(errorText);
-                        errMsg = errJson.detail || errMsg;
-                    } catch {
-                        errMsg = errorText;
-                    }
-                    log(`CRITICAL FAIL: ${errMsg}`, 'error');
-                    btn.innerText = "RETRY";
+                        errMsg = JSON.parse(errorText).detail || errMsg;
+                    } catch { }
+                    msg.innerText = errMsg;
+                    msg.className = "message error";
+                    loader.style.display = 'none';
+                    btn.disabled = false;
+                    btn.innerText = "Try Again";
                 }
             } catch (error) {
-                log(`NETWORK FAILURE: ${error.message}`, 'error');
-                btn.innerText = "RETRY";
-            } finally {
-                scanner.style.display = 'none';
+                msg.innerText = "Network Error";
+                msg.className = "message error";
+                loader.style.display = 'none';
                 btn.disabled = false;
-                if (btn.innerText === "RETRY" || btn.innerText === "SUCCESS") {
-                    setTimeout(() => btn.innerText = "Initialize Sequence", 3000);
-                }
+                btn.innerText = "Try Again";
             }
         });
 
-        // Drag and Drop visual
-        const dropZone = document.querySelector('.upload-area');
-
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = 'var(--neon-green)';
-            dropZone.style.background = 'rgba(0, 255, 65, 0.1)';
+        // Drag Handling
+        const zone = document.querySelector('.upload-zone');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            zone.addEventListener(eventName, preventDefaults, false);
         });
-
-        dropZone.addEventListener('dragleave', (e) => {
+        function preventDefaults(e) {
             e.preventDefault();
-            dropZone.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-            dropZone.style.background = 'rgba(0, 0, 0, 0.3)';
+            e.stopPropagation();
+        }
+        zone.addEventListener('dragover', () => {
+            zone.style.borderColor = 'var(--accent)';
+            zone.style.transform = 'scale(1.02)';
         });
-
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-            dropZone.style.background = 'rgba(0, 0, 0, 0.3)';
-            const input = document.getElementById('fileInput');
-            if (e.dataTransfer.files.length) {
-                input.files = e.dataTransfer.files;
-                updateFileName();
-            }
+        zone.addEventListener('dragleave', () => {
+            zone.style.borderColor = 'rgba(255,255,255,0.1)';
+            zone.style.transform = 'scale(1)';
         });
-
+        zone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            document.getElementById('fileInput').files = files;
+            updateFileName();
+            zone.style.borderColor = 'var(--primary)';
+            zone.style.transform = 'scale(1)';
+        });
     </script>
 </body>
 
