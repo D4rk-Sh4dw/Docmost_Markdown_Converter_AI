@@ -293,7 +293,7 @@
 
     <div class="glass-card">
         <h1>Docmost Converter</h1>
-        <p class="subtitle">Transform documents into clean Markdown.</p>
+        <p class="subtitle">Verwandle Dokumente in sauberes Markdown.</p>
 
         <form id="uploadForm">
             <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
@@ -303,7 +303,7 @@
                             d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
                     </svg>
                 </div>
-                <p id="fileName" class="file-status">Click just here to select PDF, DOCX, or XLSX</p>
+                <p id="fileName" class="file-status">Hier klicken oder PDF, DOCX, XLSX reinziehen</p>
                 <input type="file" id="fileInput" name="file" accept=".pdf,.docx,.xlsx" style="display: none"
                     onchange="updateFileName()">
             </div>
@@ -313,7 +313,7 @@
                 <span class="message" id="message"></span>
             </div>
 
-            <button type="submit" class="btn-grad" id="submitBtn">Convert Document</button>
+            <button type="submit" class="btn-grad" id="submitBtn">Dokument Konvertieren</button>
         </form>
     </div>
 
@@ -331,7 +331,7 @@
                 zone.style.borderColor = 'var(--primary)';
                 background: 'rgba(255, 255, 255, 0.08)';
             } else {
-                display.innerText = "Click just here to select PDF, DOCX, or XLSX";
+                display.innerText = "Hier klicken oder PDF, DOCX, XLSX reinziehen";
                 display.style.color = 'var(--text-secondary)';
                 display.style.fontWeight = '400';
             }
@@ -345,7 +345,7 @@
             const msg = document.getElementById('message');
 
             if (fileInput.files.length === 0) {
-                msg.innerText = "Please select a file first";
+                msg.innerText = "Bitte wähle zuerst eine Datei aus";
                 msg.className = "message error";
                 return;
             }
@@ -354,9 +354,9 @@
             formData.append('file', fileInput.files[0]);
 
             btn.disabled = true;
-            btn.innerText = "Processing...";
+            btn.innerText = "Verarbeite...";
             loader.style.display = 'inline-block';
-            msg.innerText = "Uploading & Converting...";
+            msg.innerText = "Upload & Konvertierung läuft...";
             msg.className = "message";
 
             try {
@@ -366,7 +366,7 @@
                 });
 
                 if (response.ok) {
-                    msg.innerText = "Conversion successful. Downloading...";
+                    msg.innerText = "Konvertierung erfolgreich. Download startet...";
                     msg.className = "message success";
 
                     const blob = await response.blob();
@@ -388,16 +388,16 @@
                     a.click();
                     window.URL.revokeObjectURL(url);
 
-                    btn.innerText = "Done";
+                    btn.innerText = "Fertig";
                     setTimeout(() => {
-                        btn.innerText = "Convert Document";
+                        btn.innerText = "Dokument Konvertieren";
                         btn.disabled = false;
                         loader.style.display = 'none';
                     }, 3000);
 
                 } else {
                     const errorText = await response.text();
-                    let errMsg = 'Upload failed';
+                    let errMsg = 'Upload fehlgeschlagen';
                     try {
                         errMsg = JSON.parse(errorText).detail || errMsg;
                     } catch { }
@@ -405,14 +405,14 @@
                     msg.className = "message error";
                     loader.style.display = 'none';
                     btn.disabled = false;
-                    btn.innerText = "Try Again";
+                    btn.innerText = "Erneut versuchen";
                 }
             } catch (error) {
-                msg.innerText = "Network Error";
+                msg.innerText = "Netzwerkfehler";
                 msg.className = "message error";
                 loader.style.display = 'none';
                 btn.disabled = false;
-                btn.innerText = "Try Again";
+                btn.innerText = "Erneut versuchen";
             }
         });
 
@@ -440,6 +440,34 @@
             updateFileName();
             zone.style.borderColor = 'var(--primary)';
             zone.style.transform = 'scale(1)';
+        });
+        // Mouse Spotlight Effect
+        const card = document.querySelector('.glass-card');
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+
+            // Background Orb subtle follow
+            const orb3 = document.querySelector('.orb-3');
+            if (orb3) {
+                const moveX = (x / window.innerWidth - 0.5) * 40;
+                const moveY = (y / window.innerHeight - 0.5) * 40;
+                orb3.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
+            }
+
+            // Spotlight on Card
+            const rect = card.getBoundingClientRect();
+            const circleX = x - rect.left;
+            const circleY = y - rect.top;
+
+            card.style.background = `
+                radial-gradient(
+                    circle 300px at ${circleX}px ${circleY}px, 
+                    rgba(255, 255, 255, 0.1), 
+                    rgba(255, 255, 255, 0.05)
+                )
+            `;
+            card.style.borderColor = `rgba(255, 255, 255, ${0.1 + (0.1 * (y / window.innerHeight))})`;
         });
     </script>
 </body>
