@@ -8,44 +8,13 @@ from pathlib import Path
 from typing import List
 
 from fastapi import FastAPI, UploadFile, File, Request
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, Response
 
-from .docling_client import DoclingClient
-from .ollama_client import OllamaClient
-from .utils import save_images, create_zip_package
-
-# Config
-DOCLING_URL = os.getenv('DOCLING_SERVER_URL', 'http://docling:8080')
-OLLAMA_URL = os.getenv('OLLAMA_SERVER_URL', 'http://ollama:11434')
-OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'llama3')
-OUTPUT_DIR = Path(os.getenv('OUTPUT_DIR', '/app/output'))
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-app = FastAPI()
-
-# Setup Static/Templates should be relative to file location
-BASE_DIR = Path(__file__).resolve().parent
-app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
-templates = Jinja2Templates(directory=BASE_DIR / "templates")
-
-# Clients
-docling = DoclingClient(DOCLING_URL)
-ollama = OllamaClient(OLLAMA_URL, OLLAMA_MODEL)
-
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "docling_status": DOCLING_URL,
-        "ollama_status": OLLAMA_URL
-    })
+# ...
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
-    return JSONResponse(status_code=204)
+    return Response(status_code=204)
 
 @app.get("/status")
 async def get_status():
