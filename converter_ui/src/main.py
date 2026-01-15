@@ -27,7 +27,7 @@ app = FastAPI()
 
 # Setup Static/Templates should be relative to file location
 BASE_DIR = Path(__file__).resolve().parent
-app.mount("/static", StaticFiles(directory=start_path=BASE_DIR / "static"), name="static")
+app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 # Clients
