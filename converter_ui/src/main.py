@@ -132,13 +132,15 @@ async def process_chunk(job_id: str, file: UploadFile = File(...)):
             logging.error(f"Skipping {file.filename} due to extraction failure.")
             return JSONResponse({"status": "skipped", "reason": "extraction_failed"})
             
-        # Create Doc Folder
+        # Prepare names
         doc_name = os.path.splitext(file.filename)[0]
-        doc_out_dir = processed_dir / doc_name
-        doc_out_dir.mkdir(parents=True, exist_ok=True)
+        # We NO LONGER create a subfolder for the doc. We put it in root of processed_dir.
+        # But we need a unique folder for images to avoid collision.
+        img_subfolder = f"{doc_name}_images"
         
         # 2. Image Handling
-        image_map = save_images(images_data, doc_out_dir)
+        # This saves to processed_dir/{doc_name}_images/
+        image_map = save_images(images_data, processed_dir, subfolder_name=img_subfolder)
         
         # Replace Docling's internal refs with our new paths
         current_markdown = raw_markdown
@@ -164,7 +166,9 @@ async def process_chunk(job_id: str, file: UploadFile = File(...)):
             final_markdown += "\n\n> [!WARNING]\n> AI Refinement failed (Timeout/Error). This is the raw extraction."
 
         # 4. Save
-        with open(doc_out_dir / "document.md", "w", encoding="utf-8") as f:
+        # Save directly to processed_dir with the document name
+        out_file_path = processed_dir / f"{doc_name}.md"
+        with open(out_file_path, "w", encoding="utf-8") as f:
             f.write(final_markdown)
             
         return JSONResponse({"status": "complated", "file": file.filename})

@@ -6,14 +6,16 @@ import logging
 from pathlib import Path
 from typing import Dict, Union
 
-def save_images(images_data: Dict[str, Union[str, bytes]], output_dir: Path) -> Dict[str, str]:
+def save_images(images_data: Dict[str, Union[str, bytes]], output_dir: Path, subfolder_name: str = 'images') -> Dict[str, str]:
     """
-    Saves images to output_dir/images/, renames them to image_001.png etc.
+    Saves images to output_dir/subfolder_name/, renames them to image_001.png etc.
     Returns a mapping of {original_name: new_relative_path}
     
     images_data: Dict where key is original filename/id, value is base64 string or bytes.
+    output_dir: The root directory where the subfolder will be created.
+    subfolder_name: The name of the directory to store images in (default: 'images').
     """
-    images_dir = output_dir / 'images'
+    images_dir = output_dir / subfolder_name
     images_dir.mkdir(parents=True, exist_ok=True)
     
     mapping = {}
@@ -23,7 +25,7 @@ def save_images(images_data: Dict[str, Union[str, bytes]], output_dir: Path) -> 
         logging.warning("save_images received None")
         return {}
         
-    logging.info(f"Saving {len(images_data)} images...")
+    logging.info(f"Saving {len(images_data)} images to {images_dir}...")
     
     for original_name, data in images_data.items():
         logging.debug(f"Processing image: {original_name}")
@@ -42,7 +44,8 @@ def save_images(images_data: Dict[str, Union[str, bytes]], output_dir: Path) -> 
                 else:
                     f.write(data)
             
-            mapping[original_name] = f"images/{new_filename}"
+            # Return path relative to output_dir (e.g. "my_doc_images/image_001.png")
+            mapping[original_name] = f"{subfolder_name}/{new_filename}"
             counter += 1
         except Exception as e:
             logging.error(f"Failed to save image {original_name}: {e}")
