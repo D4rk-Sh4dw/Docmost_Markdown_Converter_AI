@@ -98,15 +98,24 @@ async def convert_files(files: List[UploadFile] = File(...)):
                 # Use regex to replace the link target relative to standard markdown image syntax
                 # Pattern: ![alt](target) -> catch target
                 
-                # Simple replace might be enough if keys are unique filenames
-                # But safer to replace valid markdown image targets
-                # pattern = r'!\[(.*?)\]\(' + re.escape(original_name) + r'\)'
-                # replacement = r'![\1](' + new_rel_path + r')'
-                # current_markdown = re.sub(pattern, replacement, current_markdown)
+            for original_name, new_rel_path in image_map.items():
+                # Regex to search for ![alt](...original_name) ignoring the path prefix
+                # We interpret original_name as the filename (basename)
                 
-                # Fallback simple replace for now as Docling might use various syntaxes
-                if original_name in current_markdown:
-                     current_markdown = current_markdown.replace(original_name, new_rel_path)
+                # Escape the basename for regex use
+                esc_name = re.escape(original_name)
+                
+                # Pattern: ! [ ... ] ( ... /original_name )  
+                # We need to match the strict end of the URL to be the filename
+                # Capture group 1: alt text
+                
+                pattern = r'(!\[.*?\])\(.*?' + esc_name + r'\)'
+                
+                # Debug logging
+                # logging.info(f"Regex replacing for image: {original_name} -> {new_rel_path}")
+                
+                # Replace with \1(new_rel_path)
+                current_markdown = re.sub(pattern, r'\1(' + new_rel_path + ')', current_markdown)
             
             # 3. Refinement (Ollama)
             final_markdown = ollama.refine_markdown(current_markdown)
