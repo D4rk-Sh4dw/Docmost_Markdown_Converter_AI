@@ -22,7 +22,19 @@ class DoclingClient:
                 files = [('files', (os.path.basename(file_path), f, 'application/octet-stream'))]
                 
                 # Check if we need options
-                response = requests.post(url, files=files)
+                # Based on app.py: options is a FormDepends(ConvertDocumentsRequestOptions)
+                # We need to send it as a JSON string in 'options' field or individual fields?
+                # app.py: options: Annotated[ConvertDocumentsRequestOptions, FormDepends(ConvertDocumentsRequestOptions)]
+                # FormDepends usually flattens it or expects a dict.
+                # Let's try sending keys directly as form data
+                
+                data = {
+                    "image_export_mode": "embedded", # Force embedded images
+                    "do_ocr": "true",
+                    "do_table_structure": "true"
+                }
+
+                response = requests.post(url, files=files, data=data)
                 
             response.raise_for_status()
             data = response.json()
