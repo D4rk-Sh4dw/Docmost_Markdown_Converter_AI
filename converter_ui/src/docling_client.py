@@ -43,6 +43,20 @@ class DoclingClient:
             images = data.get('images', {})
             if not images:
                 images = doc.get('images', {})
+            
+            if images is None:
+                images = {}
+                
+            logging.info(f"Extracted images type: {type(images)}")
+            if isinstance(images, dict):
+                 logging.info(f"Image keys: {list(images.keys())}")
+            elif isinstance(images, list):
+                 logging.info(f"Images list length: {len(images)}")
+                 # Attempt conversion if it's a list (unlikely based on typical docling, but possible)
+                 # Converting list to dict not trivial without keys.
+            else:
+                 logging.warning(f"Unexpected images structure: {images}")
+                 images = {}
                 
             return markdown, images
             

@@ -19,7 +19,14 @@ def save_images(images_data: Dict[str, Union[str, bytes]], output_dir: Path) -> 
     mapping = {}
     counter = 1
     
+    if images_data is None:
+        logging.warning("save_images received None")
+        return {}
+        
+    logging.info(f"Saving {len(images_data)} images...")
+    
     for original_name, data in images_data.items():
+        logging.debug(f"Processing image: {original_name}")
         # Determine extension (default to png if unknown)
         ext = '.png'
         if original_name.lower().endswith('.jpg') or original_name.lower().endswith('.jpeg'):
