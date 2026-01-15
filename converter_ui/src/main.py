@@ -35,6 +35,11 @@ docling = DoclingClient(DOCLING_URL)
 ollama = OllamaClient(OLLAMA_URL, OLLAMA_MODEL)
 
 @app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "docling_status": DOCLING_URL,
+        "ollama_status": OLLAMA_URL
     })
 
 @app.get("/favicon.ico", include_in_schema=False)
