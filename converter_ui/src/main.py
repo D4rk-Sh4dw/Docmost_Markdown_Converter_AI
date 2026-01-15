@@ -94,97 +94,94 @@ async def get_status():
         
     return JSONResponse(status)
 
-@app.post("/convert")
-async def convert_files(files: List[UploadFile] = File(...)):
+# Legacy convert endpoint replaced by job system
+    
+@app.post("/job/init")
+async def init_job():
+    """Starts a new conversion job session"""
     job_id = str(uuid.uuid4())
     job_dir = Path(f"/tmp/{job_id}")
-    job_dir.mkdir(parents=True, exist_ok=True)
-    
     processed_dir = job_dir / "processed"
     processed_dir.mkdir(parents=True, exist_ok=True)
+    return JSONResponse({"job_id": job_id})
+
+@app.post("/job/{job_id}/process")
+async def process_chunk(job_id: str, file: UploadFile = File(...)):
+    """Processes a single file within a job context"""
+    job_dir = Path(f"/tmp/{job_id}")
+    processed_dir = job_dir / "processed"
     
+    if not job_dir.exists():
+         return JSONResponse({"error": "Job session expired or invalid"}, status_code=404)
+
     try:
-        for file in files:
-            # Save uploaded file
-            file_path = job_dir / file.filename
-            with open(file_path, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
-                
-            logging.info(f"Processing {file.filename}...")
+        logging.info(f"Received chunk for Job {job_id}: {file.filename}")
+        
+        # Save uploaded file
+        file_path = job_dir / file.filename
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
             
-            # 1. Extraction (Docling)
-            raw_markdown, images_data = docling.extract(str(file_path))
+        logging.info(f"Processing {file.filename}...")
+        
+        # 1. Extraction (Docling)
+        raw_markdown, images_data = docling.extract(str(file_path))
+        
+        if not raw_markdown:
+            logging.error(f"Skipping {file.filename} due to extraction failure.")
+            return JSONResponse({"status": "skipped", "reason": "extraction_failed"})
             
-            if not raw_markdown:
-                logging.error(f"Skipping {file.filename} due to extraction failure.")
-                continue
-                
-            # Create Doc Folder
-            doc_name = os.path.splitext(file.filename)[0]
-            doc_out_dir = processed_dir / doc_name
-            doc_out_dir.mkdir(parents=True, exist_ok=True)
-            
-            # 2. Image Handling
-            # Save images first to know their paths
-            image_map = save_images(images_data, doc_out_dir)
-            
-            # Update Markdown Image References BEFORE sending to LLM?
-            # User requirement: "Images: Behalte die Platzhalter ![...](images/image_xxx.png) EXAKT an ihrer semantischen Position bei."
-            # So we should inject the correct relative paths into the raw markdown first, 
-            # so Ollama just sees clear paths like ![desc](images/image_001.png).
-            
-            # Replace Docling's internal refs with our new paths
-            # Images in Docling ZIP are typically in 'pictures/' or similar.
-            # Our `images_data` keys are the filenames found in the ZIP.
-            # We need to find where they are referenced in the markdown.
-            # Regex is safer.
-            current_markdown = raw_markdown
-            
-            # Prepend Title if missing (Docmost requires H1 for imports)
-            if not current_markdown.strip().startswith('# '):
-                 current_markdown = f"# {doc_name}\n\n{current_markdown}"
+        # Create Doc Folder
+        doc_name = os.path.splitext(file.filename)[0]
+        doc_out_dir = processed_dir / doc_name
+        doc_out_dir.mkdir(parents=True, exist_ok=True)
+        
+        # 2. Image Handling
+        image_map = save_images(images_data, doc_out_dir)
+        
+        # Replace Docling's internal refs with our new paths
+        current_markdown = raw_markdown
+        
+        # Prepend Title if missing (Docmost requires H1 for imports)
+        if not current_markdown.strip().startswith('# '):
+                current_markdown = f"# {doc_name}\n\n{current_markdown}"
 
-            for original_name, new_rel_path in image_map.items():
-                # Regex to search for ![alt](...original_name) ignoring the path prefix
-                # We interpret original_name as the filename (basename)
-                
-                # Escape the basename for regex use
-                esc_name = re.escape(original_name)
-                
-                # Pattern: ! [ ... ] ( ... /original_name )  
-                # We need to match the strict end of the URL to be the filename
-                # Capture group 1: alt text
-                
-                pattern = r'(!\[.*?\])\(.*?' + esc_name + r'\)'
-                
-                # Debug logging
-                logging.info(f"Regex replacing for image: {original_name} -> {new_rel_path}")
-                
-                # Replace with \1(new_rel_path)
-                current_markdown = re.sub(pattern, r'\1(' + new_rel_path + ')', current_markdown)
-            
-            # Log Markdown before Ollama
-            logging.info(f"Markdown before Ollama (first 500 chars):\n{current_markdown[:500]}")
-            
-            # 3. Refinement (Ollama)
-            final_markdown = current_markdown
-            try:
-                final_markdown = ollama.refine_markdown(current_markdown)
-            except Exception as e:
-                logging.error(f"Ollama refinement failed for {file.filename}: {e}")
-                logging.warning("Falling back to original Docling markdown.")
-                # We append a small note so the user knows this file wasn't AI-refined
-                final_markdown += "\n\n> [!WARNING]\n> AI Refinement failed (Timeout/Error). This is the raw extraction."
+        for original_name, new_rel_path in image_map.items():
+            esc_name = re.escape(original_name)
+            pattern = r'(!\[.*?\])\(.*?' + esc_name + r'\)'
+            current_markdown = re.sub(pattern, r'\1(' + new_rel_path + ')', current_markdown)
+        
+        logging.info(f"Markdown prepared for Ollama (Job {job_id}, File {file.filename})")
+        
+        # 3. Refinement (Ollama)
+        final_markdown = current_markdown
+        try:
+            final_markdown = ollama.refine_markdown(current_markdown)
+        except Exception as e:
+            logging.error(f"Ollama refinement failed for {file.filename}: {e}")
+            logging.warning("Falling back to original Docling markdown.")
+            final_markdown += "\n\n> [!WARNING]\n> AI Refinement failed (Timeout/Error). This is the raw extraction."
 
-            # 4. Save
-            with open(doc_out_dir / "document.md", "w", encoding="utf-8") as f:
-                f.write(final_markdown)
-                
-        # Zip
-        # Check if we actually processed anything
-        if not any(processed_dir.iterdir()):
-             raise Exception("No files were successfully processed. Check Docling server connection and logs.")
+        # 4. Save
+        with open(doc_out_dir / "document.md", "w", encoding="utf-8") as f:
+            f.write(final_markdown)
+            
+        return JSONResponse({"status": "complated", "file": file.filename})
 
+    except Exception as e:
+        logging.error(f"Chunk processing failed: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@app.post("/job/{job_id}/finalize")
+async def finalize_job(job_id: str):
+    """Zips the processed files and returns download URL"""
+    job_dir = Path(f"/tmp/{job_id}")
+    processed_dir = job_dir / "processed"
+    
+    if not processed_dir.exists() or not any(processed_dir.iterdir()):
+         return JSONResponse({"error": "No files were successfully processed."}, status_code=400)
+
+    try:
         zip_name = f"converted_{job_id}.zip"
         zip_path = job_dir / zip_name
         create_zip_package(processed_dir, str(zip_path))
@@ -197,12 +194,15 @@ async def convert_files(files: List[UploadFile] = File(...)):
         return JSONResponse({"download_url": f"/download/{zip_name}", "status": "success"})
         
     except Exception as e:
-        logging.error(f"Job failed: {e}")
+        logging.error(f"Finalization failed: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
     finally:
-        # Cleanup
+        # Cleanup temp dir? Maybe keep for a bit for debug.
         # shutil.rmtree(job_dir, ignore_errors=True)
         pass
+
+# Legacy endpoint removed/replaced by job logic
+# @app.post("/convert") ...
 
 @app.get("/download/{filename}")
 async def download_file(filename: str):
