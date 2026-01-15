@@ -19,7 +19,7 @@ class OllamaClient:
             "1. **Header Hierarchy**: Ensure proper nesting (# H1, ## H2, ### H3). Fix broken headers.\n"
             "2. **Lists & Tables**: Fix indentation in lists. Ensure Markdown tables are syntactically correct.\n"
             "3. **Code Blocks**: Detect code snippets (Shell, JSON, Python) and wrap them in ```language blocks.\n"
-            "4. **Images**: RETAIN ALL IMAGE LINKS. Strict format: ![Description](images/filename.png). Never remove an image.\n"
+            "4. **Images**: RETAIN ALL IMAGE LINKS EXACTLY AS THEY ARE. Do not modify the path or filename. Do not add prefixes.\n"
             "5. **Cleanup**: Remove artifacts like 'Page 1 of 5', repetitive footers, or random line breaks that break sentences.\n"
             "6. **Content Safety**: Do NOT summarize. Do NOT delete informational text. Only remove layout noise.\n"
             "7. **Formatting**: Use bold/italics to highlight key terms (IPs, Paths, Menu Items).\n"
