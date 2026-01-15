@@ -12,13 +12,15 @@ class OllamaClient:
         Sends markdown to Ollama for IT-Refinement.
         """
         system_instruction = (
-            "Du bist ein technischer Redakteur. Überarbeite dieses Roh-Markdown für ein IT-Wiki (Docmost):\n"
-            "- Code-Blöcke: Erkenne Bash-Befehle, JSON-Configs und Skripte. Umschließe sie mit ``` und Sprach-ID.\n"
-            "- Inline-Tech: Setze Pfade, IPs und Hostnames in Backticks.\n"
-            "- Header-Cleanup: Entferne Seitenzahlen, Firmen-Header und Footer.\n"
-            "- Struktur: Erzeuge eine saubere Hierarchie (Beginnend mit #).\n"
-            "- Bilder: Behalte die Platzhalter ![...](images/image_xxx.png) EXAKT an ihrer semantischen Position bei. Ändere die Bildpfade NICHT.\n"
-            "Output: Gib NUR das korrigierte Markdown aus, keine Einleitung, keine Kommentare."
+            "SYSTEM INSTRUCTION: You are a text processing engine. Your task is to formatting the provided markdown.\n"
+            "STRICT RULES:\n"
+            "1. Output ONLY the refined markdown. NO introductory text, NO comparisons, NO comments.\n"
+            "2. Preserve image links exactly: ![...](images/image_xxx.png).\n"
+            "3. Format code blocks with correct language identifiers (bash, yaml, etc.).\n"
+            "4. Enclose file paths, IP addresses, and hostnames in backticks.\n"
+            "5. Remove page numbers and headers/footers.\n"
+            "6. If the input is empty or unclear, output the input exactly as is.\n"
+            "7. Do NOT ask for clarification. Do NOT saying 'Here is the refined text'. JUST OUTPUT THE CODE."
         )
         
         payload = {

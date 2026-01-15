@@ -49,7 +49,13 @@ class DoclingClient:
                 
             logging.info(f"Extracted images type: {type(images)}")
             if isinstance(images, dict):
-                 logging.info(f"Image keys: {list(images.keys())}")
+                 keys = list(images.keys())
+                 logging.info(f"Image keys (count {len(keys)}): {keys}")
+                 if keys:
+                     sample_val = images[keys[0]]
+                     logging.info(f"Sample image data type: {type(sample_val)}")
+                     if isinstance(sample_val, str):
+                         logging.info(f"Sample image data prefix: {sample_val[:100]}")
             elif isinstance(images, list):
                  logging.info(f"Images list length: {len(images)}")
                  # Attempt conversion if it's a list (unlikely based on typical docling, but possible)
