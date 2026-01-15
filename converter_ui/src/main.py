@@ -1,0 +1,130 @@
+import os
+import shutil
+import logging
+import uuid
+import re
+from pathlib import Path
+from typing import List
+
+from fastapi import FastAPI, UploadFile, File, Request
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+from .docling_client import DoclingClient
+from .ollama_client import OllamaClient
+from .utils import save_images, create_zip_package
+
+# Config
+DOCLING_URL = os.getenv('DOCLING_SERVER_URL', 'http://docling:8080')
+OLLAMA_URL = os.getenv('OLLAMA_SERVER_URL', 'http://ollama:11434')
+OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'llama3')
+OUTPUT_DIR = Path(os.getenv('OUTPUT_DIR', '/app/output'))
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+app = FastAPI()
+
+# Setup Static/Templates should be relative to file location
+BASE_DIR = Path(__file__).resolve().parent
+app.mount("/static", StaticFiles(directory=start_path=BASE_DIR / "static"), name="static")
+templates = Jinja2Templates(directory=BASE_DIR / "templates")
+
+# Clients
+docling = DoclingClient(DOCLING_URL)
+ollama = OllamaClient(OLLAMA_URL, OLLAMA_MODEL)
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "docling_status": DOCLING_URL,
+        "ollama_status": OLLAMA_URL
+    })
+
+@app.post("/convert")
+async def convert_files(files: List[UploadFile] = File(...)):
+    job_id = str(uuid.uuid4())
+    job_dir = Path(f"/tmp/{job_id}")
+    job_dir.mkdir(parents=True, exist_ok=True)
+    
+    processed_dir = job_dir / "processed"
+    processed_dir.mkdir(parents=True, exist_ok=True)
+    
+    try:
+        for file in files:
+            # Save uploaded file
+            file_path = job_dir / file.filename
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+                
+            logging.info(f"Processing {file.filename}...")
+            
+            # 1. Extraction (Docling)
+            raw_markdown, images_data = docling.extract(str(file_path))
+            
+            if not raw_markdown:
+                logging.error(f"Skipping {file.filename} due to extraction failure.")
+                continue
+                
+            # Create Doc Folder
+            doc_name = os.path.splitext(file.filename)[0]
+            doc_out_dir = processed_dir / doc_name
+            doc_out_dir.mkdir(parents=True, exist_ok=True)
+            
+            # 2. Image Handling
+            # Save images first to know their paths
+            image_map = save_images(images_data, doc_out_dir)
+            
+            # Update Markdown Image References BEFORE sending to LLM?
+            # User requirement: "Images: Behalte die Platzhalter ![...](images/image_xxx.png) EXAKT an ihrer semantischen Position bei."
+            # So we should inject the correct relative paths into the raw markdown first, 
+            # so Ollama just sees clear paths like ![desc](images/image_001.png).
+            
+            # Replace Docling's internal refs with our new paths
+            # Docling refs might be diverse. Assuming they match keys in images_data.
+            current_markdown = raw_markdown
+            for original_ref, new_rel_path in image_map.items():
+                # Escape for regex
+                # Docling often uses: ![image_0](image_0) or similar
+                # We try simple string replacement first if possible, or robust regex
+                # Careful: simple replace might match partials.
+                
+                # Heuristic: Replace "](<original_ref>)" with "](<new_rel_path>)"
+                # or "](cid:<original_ref>)" etc.
+                if original_ref in current_markdown:
+                    current_markdown = current_markdown.replace(original_ref, new_rel_path)
+            
+            # 3. Refinement (Ollama)
+            final_markdown = ollama.refine_markdown(current_markdown)
+            
+            # 4. Save
+            with open(doc_out_dir / "document.md", "w", encoding="utf-8") as f:
+                f.write(final_markdown)
+                
+        # Zip
+        zip_name = f"converted_{job_id}.zip"
+        zip_path = job_dir / zip_name
+        create_zip_package(processed_dir, str(zip_path))
+        
+        # Move to public output
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        final_zip_path = OUTPUT_DIR / zip_name
+        shutil.move(str(zip_path), str(final_zip_path))
+        
+        return JSONResponse({"download_url": f"/download/{zip_name}", "status": "success"})
+        
+    except Exception as e:
+        logging.error(f"Job failed: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+    finally:
+        # Cleanup
+        # shutil.rmtree(job_dir, ignore_errors=True)
+        pass
+
+@app.get("/download/{filename}")
+async def download_file(filename: str):
+    file_path = OUTPUT_DIR / filename
+    if file_path.exists():
+        return FileResponse(file_path, filename=filename)
+    return JSONResponse({"error": "File not found"}, status_code=404)

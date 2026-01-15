@@ -2,11 +2,17 @@ version: '3.8'
 
 services:
   converter-ui:
-    image: ghcr.io/d4rk-sh4dw/docmost_markdown_converter-ui:latest
+    build: ./converter_ui
     container_name: converter-ui
     ports:
       - "3000:3000"
     environment:
-      # MUST point to your external Docling server
-      - DOCLING_SERVER_URL=${DOCLING_SERVER_URL:-http://localhost:5001}
+      # Point to your external services
+      # On Windows/Mac Docker Desktop, 'host.docker.internal' resolves to the host machine.
+      # If running on a remote server, put the IP address here.
+      - DOCLING_SERVER_URL=${DOCLING_SERVER_URL:-http://host.docker.internal:8080}
+      - OLLAMA_SERVER_URL=${OLLAMA_SERVER_URL:-http://host.docker.internal:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3:8b}
+    volumes:
+      - ./output:/app/output
     restart: unless-stopped
