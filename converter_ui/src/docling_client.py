@@ -11,16 +11,14 @@ class DoclingClient:
         Sends file to Docling server for processing.
         Returns tuple: (markdown_text, images_dict)
         """
-        url = f"{self.server_url}/v1alpha/convert/source" # Endpoint for multipart/form-data
-        # NOTE: Docling serve usually exposes /convert expecting a file.
-        # Check specific docling-serve API. Assuming standard POST /v1/convert or similar.
-        # If generic docling serve: likely accepts file upload.
+        url = f"{self.server_url}/v1/convert/file" # Verified in docling-serve source code
         
         logging.info(f"Sending {file_path} to Docling at {url}")
         
         try:
             with open(file_path, 'rb') as f:
-                files = {'file': f}
+                # API expects 'files' (plural) as iter of UploadFile
+                files = {'files': f} 
                 # Check if we need options
                 response = requests.post(url, files=files)
                 
