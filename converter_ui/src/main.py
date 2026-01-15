@@ -167,8 +167,15 @@ async def convert_files(files: List[UploadFile] = File(...)):
             logging.info(f"Markdown before Ollama (first 500 chars):\n{current_markdown[:500]}")
             
             # 3. Refinement (Ollama)
-            final_markdown = ollama.refine_markdown(current_markdown)
-            
+            final_markdown = current_markdown
+            try:
+                final_markdown = ollama.refine_markdown(current_markdown)
+            except Exception as e:
+                logging.error(f"Ollama refinement failed for {file.filename}: {e}")
+                logging.warning("Falling back to original Docling markdown.")
+                # We append a small note so the user knows this file wasn't AI-refined
+                final_markdown += "\n\n> [!WARNING]\n> AI Refinement failed (Timeout/Error). This is the raw extraction."
+
             # 4. Save
             with open(doc_out_dir / "document.md", "w", encoding="utf-8") as f:
                 f.write(final_markdown)
