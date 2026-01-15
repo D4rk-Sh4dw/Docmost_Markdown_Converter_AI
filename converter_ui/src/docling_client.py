@@ -11,7 +11,7 @@ class DoclingClient:
         Sends file to Docling server for processing.
         Returns tuple: (markdown_text, images_dict)
         """
-        url = f"{self.server_url}/convert" # Validation needed on actual endpoint
+        url = f"{self.server_url}/v1/convert" # Adjusted to standard /v1/convert
         # NOTE: Docling serve usually exposes /convert expecting a file.
         # Check specific docling-serve API. Assuming standard POST /v1/convert or similar.
         # If generic docling serve: likely accepts file upload.
@@ -45,5 +45,5 @@ class DoclingClient:
         except Exception as e:
             logging.error(f"Docling extraction failed: {e}")
             if 'response' in locals() and hasattr(response, 'text'):
-                 logging.error(f"Server response: {response.text}")
+            logging.error(f"Server response: {response.text}")
             return None, {}

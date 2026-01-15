@@ -103,6 +103,10 @@ async def convert_files(files: List[UploadFile] = File(...)):
                 f.write(final_markdown)
                 
         # Zip
+        # Check if we actually processed anything
+        if not any(processed_dir.iterdir()):
+             raise Exception("No files were successfully processed. Check Docling server connection and logs.")
+
         zip_name = f"converted_{job_id}.zip"
         zip_path = job_dir / zip_name
         create_zip_package(processed_dir, str(zip_path))
