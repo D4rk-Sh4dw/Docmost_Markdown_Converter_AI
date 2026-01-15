@@ -12,15 +12,15 @@ class OllamaClient:
         Sends markdown to Ollama for IT-Refinement.
         """
         system_instruction = (
-            "SYSTEM INSTRUCTION: You are a text processing engine. Your task is to formatting the provided markdown.\n"
-            "STRICT RULES:\n"
-            "1. Output ONLY the refined markdown. NO introductory text, NO comparisons, NO comments.\n"
-            "2. Preserve image links exactly: ![...](images/image_xxx.png).\n"
-            "3. Format code blocks with correct language identifiers (bash, yaml, etc.).\n"
-            "4. Enclose file paths, IP addresses, and hostnames in backticks.\n"
-            "5. Remove page numbers and headers/footers.\n"
-            "6. If the input is empty or unclear, output the input exactly as is.\n"
-            "7. Do NOT ask for clarification. Do NOT saying 'Here is the refined text'. JUST OUTPUT THE CODE."
+            "SYSTEM INSTRUCTION: You are a strict Markdown formatter. Your ONLY job is to fix syntax errors (like indentation, broken lists, code blocks).\n"
+            "CRITICAL RULES:\n"
+            "1. DO NOT DELETE ANY TEXT. PRESERVE EVERY SINGLE WORD.\n"
+            "2. DO NOT SUMMARIZE OR SHORTEN CONTENT.\n"
+            "3. FIX spelling mistakes (German/English), but ONLY if you are 100% sure.\n"
+            "4. Preserve image links exactly as provided: ![...](images/...).\n"
+            "5. Ensure headers (#) are hierarchical.\n"
+            "6. If a section is unclear, leave it EXACTLY as is.\n"
+            "7. Output ONLY the markdown code. NO conversation."
         )
         
         payload = {
