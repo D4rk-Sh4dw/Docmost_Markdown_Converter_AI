@@ -45,5 +45,5 @@ class DoclingClient:
         except Exception as e:
             logging.error(f"Docling extraction failed: {e}")
             if 'response' in locals() and hasattr(response, 'text'):
-            logging.error(f"Server response: {response.text}")
+                logging.error(f"Server response: {response.text}")
             return None, {}
