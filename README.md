@@ -34,17 +34,16 @@ Da die Images automatisch via GitHub Actions gebaut werden, ist kein lokaler Bui
 
 ## Konfiguration
 
-Die Konfiguration erfolgt über Umgebungsvariablen in der `docker-compose.yml`:
+Die Konfiguration erfolgt über eine `.env` Datei im gleichen Verzeichnis wie die `docker-compose.yml`.
 
-```yaml
-services:
-  converter-ui:
-    image: ghcr.io/d4rk-sh4dw/docmost_markdown_converter-ui:latest
-    environment:
-      - DOCLING_SERVER_URL=http://docling:8080      # URL zum Docling Server
-      - OLLAMA_SERVER_URL=http://ollama:11434       # URL zu Ollama
-      - OLLAMA_MODEL=llama3                         # Zu verwendendes KI-Modell
+Beispielinhalt der `.env`:
+```env
+DOCLING_SERVER_URL=http://host.docker.internal:8080
+OLLAMA_SERVER_URL=http://host.docker.internal:11434
+OLLAMA_MODEL=gpt-oss:20b
 ```
+
+*Tipp: Jedes Ollama-Modell funktioniert, aber wir empfehlen **`gpt-oss:20b`** für die besten Ergebnisse bei der deutschen Textveredelung.*
 
 ## Nutzung
 
@@ -56,6 +55,6 @@ services:
 
 ### Import in Docmost
 
-1.  Entpacken Sie das ZIP nicht (oder doch, je nach Import-Art).
-2.  Importieren Sie das ZIP in Docmost.
+1.  **Entpacken Sie das ZIP-Archiv NICHT!**
+2.  Importieren Sie das ZIP direkt in Docmost.
 3.  Es wird eine Seite **"Import"** erstellt, die alle Ihre Dokumente als Unterseiten enthält.
