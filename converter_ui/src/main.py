@@ -93,12 +93,6 @@ async def convert_files(files: List[UploadFile] = File(...)):
                  current_markdown = f"# {doc_name}\n\n{current_markdown}"
 
             for original_name, new_rel_path in image_map.items():
-                # Docling markdown ref usually looks like: ![Image](original_name)
-                # We want to replace (original_name) with (new_rel_path)
-                # Use regex to replace the link target relative to standard markdown image syntax
-                # Pattern: ![alt](target) -> catch target
-                
-            for original_name, new_rel_path in image_map.items():
                 # Regex to search for ![alt](...original_name) ignoring the path prefix
                 # We interpret original_name as the filename (basename)
                 
