@@ -170,6 +170,9 @@
         setInterval(checkStatus, 5000);
         checkStatus();
 
+        // ---------------------------------------------------------
+        // CLIENT-SIDE BATCH PROCESSING LOGIC (NEW)
+        // ---------------------------------------------------------
         convertBtn.addEventListener('click', async () => {
             if (filesToUpload.length === 0) return;
 
@@ -177,32 +180,72 @@
             convertBtn.disabled = true;
             processingOverlay.classList.add('active');
 
-            const formData = new FormData();
-            filesToUpload.forEach(file => { formData.append('files', file); });
+            const statusTitle = processingOverlay.querySelector('h3');
+            const statusText = processingOverlay.querySelector('p');
+            const subText = processingOverlay.querySelector('.sub-text');
 
             try {
-                const response = await fetch('/convert', { method: 'POST', body: formData });
-                if (response.ok) {
-                    const result = await response.json();
+                // 1. Init Job
+                statusTitle.innerText = "Initialisiere...";
+                const initRes = await fetch('/job/init', { method: 'POST' });
+                if (!initRes.ok) throw new Error("Job konnte nicht gestartet werden");
+                const { job_id } = await initRes.json();
+
+                // 2. Process Files Sequentially
+                let processedCount = 0;
+                const total = filesToUpload.length;
+
+                for (const file of filesToUpload) {
+                    processedCount++;
+                    statusTitle.innerText = `Verarbeite Datei ${processedCount} von ${total}`;
+                    statusText.innerText = file.name;
+                    subText.innerText = "Sende an Docling & Ollama...";
+
+                    const formData = new FormData();
+                    formData.append('file', file); // key must be 'file'
+
+                    const chunkRes = await fetch(`/job/${job_id}/process`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!chunkRes.ok) {
+                        console.error(`Failed to process ${file.name}`);
+                        subText.innerText = `Fehler bei ${file.name}, überspringe...`;
+                        // We continue with other files even if one fails
+                    }
+                }
+
+                // 3. Finalize
+                statusTitle.innerText = "Erstelle ZIP-Paket...";
+                statusText.innerText = "Fast fertig";
+                subText.innerText = "Komprimiere Dateien...";
+
+                const finalRes = await fetch(`/job/${job_id}/finalize`, { method: 'POST' });
+                if (finalRes.ok) {
+                    const result = await finalRes.json();
                     if (result.download_url) {
                         statusMessage.textContent = 'Erfolg! Download startet...';
                         statusMessage.className = 'status-message success';
 
-                        // Download trigger
                         window.location.href = result.download_url;
 
-                        // Reset UI after short delay
                         setTimeout(() => {
                             processingOverlay.classList.remove('active');
                             filesToUpload = [];
                             updateFileList();
                             convertBtn.disabled = true;
                             statusMessage.textContent = 'Bereit für den nächsten Auftrag.';
+                            // Reset texts
+                            statusTitle.innerText = "Bitte warten...";
+                            statusText.innerText = "Dokumente werden verarbeitet.";
+                            subText.innerText = "Extraktion -> KI-Optimierung -> Paketierung";
                         }, 2000);
                         return;
                     }
                 }
-                throw new Error('Serverfehler bei der Konvertierung');
+                throw new Error('Fehler beim Abschließen des Jobs');
+
             } catch (error) {
                 console.error(error);
                 statusMessage.textContent = 'Fehler: ' + error.message;
