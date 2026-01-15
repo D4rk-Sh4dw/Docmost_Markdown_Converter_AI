@@ -77,7 +77,49 @@ header p {
     gap: 1rem;
 }
 
-box-shadow: 0 0 5px var(--error);
+/* STATUS INDICATORS */
+.status-indicator {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s;
+}
+
+.status-indicator::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--error);
+    box-shadow: 0 0 5px var(--error);
+}
+
+.status-indicator.online {
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #a7f3d0;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.status-indicator.online::before {
+    background-color: var(--success);
+    box-shadow: 0 0 8px var(--success);
+}
+
+.status-indicator.offline {
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.status-indicator.offline::before {
+    background-color: var(--error);
+    box-shadow: 0 0 5px var(--error);
 }
 
 /* MOUSE GLOW */
