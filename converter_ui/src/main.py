@@ -189,7 +189,6 @@ async def finalize_job(job_id: str):
          return JSONResponse({"error": "No files were successfully processed."}, status_code=400)
 
     try:
-    try:
         # Create "Endlevel" Structure:
         # We want ZIP content: /Import/Doc1.md
         # So we move 'processed' -> 'staging/Import'
