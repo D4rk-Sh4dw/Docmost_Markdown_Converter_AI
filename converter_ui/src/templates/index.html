@@ -214,6 +214,9 @@
                         subText.innerText = `Fehler bei ${file.name}, überspringe...`;
                         // We continue with other files even if one fails
                     }
+
+                    // GPU Cool Down: Wait 3s before next file
+                    await new Promise(r => setTimeout(r, 3000));
                 }
 
                 // 3. Finalize

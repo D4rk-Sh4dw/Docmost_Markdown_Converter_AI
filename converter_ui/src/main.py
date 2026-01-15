@@ -203,7 +203,8 @@ async def finalize_job(job_id: str):
         shutil.move(str(processed_dir), str(import_dir))
         
         # Create Parent Page Content (Required for Docmost structure)
-        (import_dir / "Import.md").write_text("# Import\n\nBatch Conversion", encoding="utf-8")
+        # It must be at the ROOT of the zip (staging_dir), not inside the Import folder
+        (staging_dir / "Import.md").write_text("# Import\n\nBatch Conversion", encoding="utf-8")
         
         zip_name = f"converted_{job_id}.zip"
         zip_path = job_dir / zip_name
