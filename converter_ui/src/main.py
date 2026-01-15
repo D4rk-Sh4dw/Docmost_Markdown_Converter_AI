@@ -82,18 +82,31 @@ async def convert_files(files: List[UploadFile] = File(...)):
             # so Ollama just sees clear paths like ![desc](images/image_001.png).
             
             # Replace Docling's internal refs with our new paths
-            # Docling refs might be diverse. Assuming they match keys in images_data.
+            # Images in Docling ZIP are typically in 'pictures/' or similar.
+            # Our `images_data` keys are the filenames found in the ZIP.
+            # We need to find where they are referenced in the markdown.
+            # Regex is safer.
             current_markdown = raw_markdown
-            for original_ref, new_rel_path in image_map.items():
-                # Escape for regex
-                # Docling often uses: ![image_0](image_0) or similar
-                # We try simple string replacement first if possible, or robust regex
-                # Careful: simple replace might match partials.
+            
+            # Prepend Title if missing (Docmost requires H1 for imports)
+            if not current_markdown.strip().startswith('# '):
+                 current_markdown = f"# {doc_name}\n\n{current_markdown}"
+
+            for original_name, new_rel_path in image_map.items():
+                # Docling markdown ref usually looks like: ![Image](original_name)
+                # We want to replace (original_name) with (new_rel_path)
+                # Use regex to replace the link target relative to standard markdown image syntax
+                # Pattern: ![alt](target) -> catch target
                 
-                # Heuristic: Replace "](<original_ref>)" with "](<new_rel_path>)"
-                # or "](cid:<original_ref>)" etc.
-                if original_ref in current_markdown:
-                    current_markdown = current_markdown.replace(original_ref, new_rel_path)
+                # Simple replace might be enough if keys are unique filenames
+                # But safer to replace valid markdown image targets
+                # pattern = r'!\[(.*?)\]\(' + re.escape(original_name) + r'\)'
+                # replacement = r'![\1](' + new_rel_path + r')'
+                # current_markdown = re.sub(pattern, replacement, current_markdown)
+                
+                # Fallback simple replace for now as Docling might use various syntaxes
+                if original_name in current_markdown:
+                     current_markdown = current_markdown.replace(original_name, new_rel_path)
             
             # 3. Refinement (Ollama)
             final_markdown = ollama.refine_markdown(current_markdown)
