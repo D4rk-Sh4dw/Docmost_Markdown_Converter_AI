@@ -18,64 +18,54 @@ class DoclingClient:
         try:
             with open(file_path, 'rb') as f:
                 # API expects 'files' (plural) as iter of UploadFile
-                # Using list of tuples is safer for requests to handle multiple files/lists
                 files = [('files', (os.path.basename(file_path), f, 'application/octet-stream'))]
                 
-                # Check if we need options
-                # Based on app.py: options is a FormDepends(ConvertDocumentsRequestOptions)
-                # We need to send it as a JSON string in 'options' field or individual fields?
-                # app.py: options: Annotated[ConvertDocumentsRequestOptions, FormDepends(ConvertDocumentsRequestOptions)]
-                # FormDepends usually flattens it or expects a dict.
-                # Let's try sending keys directly as form data
-                
+                # Request ZIP output with referenced images
                 data = {
-                    "image_export_mode": "embedded", # Force embedded images
+                    "image_export_mode": "referenced", 
+                    "to_formats": ["md"], # We only need markdown
+                    "target_type": "zip",
                     "do_ocr": "true",
                     "do_table_structure": "true"
                 }
 
                 response = requests.post(url, files=files, data=data)
-                
+            
             response.raise_for_status()
-            data = response.json()
             
-            # Docling Serve v1 returns ConvertDocumentResponse:
-            # { "document": { "markdown": "...", ... }, "status": "success", ... }
+            # Save ZIP response to a temporary file
+            import zipfile
+            import tempfile
+            from pathlib import Path
             
-            doc = data.get('document', {})
-            markdown = doc.get('md_content', '')
+            markdown = ""
+            images = {}
             
-            # If markdown is still empty, try to log the keys to help debugging
+            with tempfile.TemporaryDirectory() as temp_dir:
+                zip_path = Path(temp_dir) / "response.zip"
+                with open(zip_path, 'wb') as zf:
+                    zf.write(response.content)
+                
+                # Extract ZIP
+                with zipfile.ZipFile(zip_path, 'r') as zf:
+                    zf.extractall(temp_dir)
+                    
+                    # Find markdown file
+                    for root, dirs, extracted_files in os.walk(temp_dir):
+                        for file in extracted_files:
+                            if file.endswith(".md"):
+                                with open(os.path.join(root, file), 'r', encoding='utf-8') as mdf:
+                                    markdown = mdf.read()
+                            elif file.lower().endswith(('.png', '.jpg', '.jpeg')):
+                                # Read image bytes
+                                with open(os.path.join(root, file), 'rb') as imgf:
+                                    images[file] = imgf.read()
+
             if not markdown:
-                 logging.warning(f"Markdown not found in response. Available keys in 'document': {list(doc.keys())}, Keys in root: {list(data.keys())}")
+                logging.warning("No markdown file found in Docling ZIP response.")
             
-            # Images extraction - check where images are located.
-            # Usually docling exports images separately or embedded.
-            # Assuming 'images' might be in root or under document.
-            images = data.get('images', {})
-            if not images:
-                images = doc.get('images', {})
+            logging.info(f"Extracted {len(images)} images from ZIP.")
             
-            if images is None:
-                images = {}
-                
-            logging.info(f"Extracted images type: {type(images)}")
-            if isinstance(images, dict):
-                 keys = list(images.keys())
-                 logging.info(f"Image keys (count {len(keys)}): {keys}")
-                 if keys:
-                     sample_val = images[keys[0]]
-                     logging.info(f"Sample image data type: {type(sample_val)}")
-                     if isinstance(sample_val, str):
-                         logging.info(f"Sample image data prefix: {sample_val[:100]}")
-            elif isinstance(images, list):
-                 logging.info(f"Images list length: {len(images)}")
-                 # Attempt conversion if it's a list (unlikely based on typical docling, but possible)
-                 # Converting list to dict not trivial without keys.
-            else:
-                 logging.warning(f"Unexpected images structure: {images}")
-                 images = {}
-                
             return markdown, images
             
         except Exception as e:
@@ -83,5 +73,6 @@ class DoclingClient:
             logging.error(f"Docling extraction failed: {e}")
             logging.error(traceback.format_exc())
             if 'response' in locals() and hasattr(response, 'text'):
-                logging.error(f"Server response: {response.text}")
+                # In case of error (non-zip), text might be available
+                logging.error(f"Server response: {response.text[:500]}")
             return None, {}
