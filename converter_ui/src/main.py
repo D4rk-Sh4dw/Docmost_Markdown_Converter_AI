@@ -106,10 +106,13 @@ async def convert_files(files: List[UploadFile] = File(...)):
                 pattern = r'(!\[.*?\])\(.*?' + esc_name + r'\)'
                 
                 # Debug logging
-                # logging.info(f"Regex replacing for image: {original_name} -> {new_rel_path}")
+                logging.info(f"Regex replacing for image: {original_name} -> {new_rel_path}")
                 
                 # Replace with \1(new_rel_path)
                 current_markdown = re.sub(pattern, r'\1(' + new_rel_path + ')', current_markdown)
+            
+            # Log Markdown before Ollama
+            logging.info(f"Markdown before Ollama (first 500 chars):\n{current_markdown[:500]}")
             
             # 3. Refinement (Ollama)
             final_markdown = ollama.refine_markdown(current_markdown)
