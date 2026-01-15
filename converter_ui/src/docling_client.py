@@ -27,20 +27,22 @@ class DoclingClient:
             response.raise_for_status()
             data = response.json()
             
-            # Extract content. 
-            # Docling JSON typically: { 'main-text': ..., 'images': ... }
-            # Adjust key access based on actual Docling API Reference.
-            # Assuming 'markdown' field and 'images' list/dict.
+            # Docling Serve v1 returns ConvertDocumentResponse:
+            # { "document": { "markdown": "...", ... }, "status": "success", ... }
             
-            markdown = data.get('markdown', '')
+            doc = data.get('document', {})
+            markdown = doc.get('markdown', '')
+            
+            # If markdown is still empty, try to log the keys to help debugging
             if not markdown:
-                 # Fallback if structure is different (e.g. 'document' -> 'markdown')
-                 markdown = data.get('document', {}).get('markdown', '')
+                 logging.warning(f"Markdown not found in response. Available keys in 'document': {list(doc.keys())}, Keys in root: {list(data.keys())}")
             
-            images = data.get('images', {}) 
-            # Images might be base64.
-            
-            return markdown, images
+            # Images extraction - check where images are located.
+            # Usually docling exports images separately or embedded.
+            # Assuming 'images' might be in root or under document.
+            images = data.get('images', {})
+            if not images:
+                images = doc.get('images', {})
             
         except Exception as e:
             import traceback
