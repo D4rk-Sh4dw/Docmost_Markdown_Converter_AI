@@ -189,9 +189,25 @@ async def finalize_job(job_id: str):
          return JSONResponse({"error": "No files were successfully processed."}, status_code=400)
 
     try:
+    try:
+        # Create "Endlevel" Structure:
+        # We want ZIP content: /Import/Doc1.md
+        # So we move 'processed' -> 'staging/Import'
+        
+        staging_dir = job_dir / "staging"
+        staging_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Target: staging/Import
+        import_dir = staging_dir / "Import"
+        
+        # Move the entire processed folder to become 'Import'
+        shutil.move(str(processed_dir), str(import_dir))
+        
         zip_name = f"converted_{job_id}.zip"
         zip_path = job_dir / zip_name
-        create_zip_package(processed_dir, str(zip_path))
+        
+        # Zip contents of staging (which is just 'Import' folder)
+        create_zip_package(staging_dir, str(zip_path))
         
         # Move to public output
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
