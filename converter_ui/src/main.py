@@ -35,12 +35,58 @@ docling = DoclingClient(DOCLING_URL)
 ollama = OllamaClient(OLLAMA_URL, OLLAMA_MODEL)
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "docling_status": DOCLING_URL,
-        "ollama_status": OLLAMA_URL
     })
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return JSONResponse(status_code=204)
+
+@app.get("/status")
+async def get_status():
+    """
+    Robust Status Check:
+    - Ollama: Root Check ("Ollama is running")
+    - Docling: UI Page Check (Look for "Docling Serve")
+    """
+    status = {
+        "docling": "offline",
+        "ollama": "offline"
+    }
+    
+    # 1. Check Docling (UI Scraping)
+    try:
+        # User says: Check /ui for string "Docling Serve"
+        # We try strict /ui first, then root if that fails/moves
+        ui_url = f"{DOCLING_URL}/ui"
+        
+        logging.info(f"Checking Docling Status at {ui_url}")
+        resp = requests.get(ui_url, timeout=5)
+        
+        if resp.status_code == 200 and "Docling Serve" in resp.text:
+            status["docling"] = "online"
+        else:
+             # Fallback: maybe it's on root?
+             logging.info("Docling /ui check failed, trying root...")
+             resp_root = requests.get(DOCLING_URL, timeout=5)
+             if resp_root.status_code == 200 and ("Docling Serve" in resp_root.text or "Swagger" in resp_root.text):
+                 status["docling"] = "online"
+                 
+    except Exception as e:
+        logging.error(f"Docling Status Check Failed: {e}")
+        pass
+
+    # 2. Check Ollama (Root Check)
+    try:
+        # User says: response to curl is "Ollama is running"
+        logging.info(f"Checking Ollama Status at {OLLAMA_URL}")
+        resp = requests.get(OLLAMA_URL, timeout=5)
+        if resp.status_code == 200 and "Ollama is running" in resp.text:
+             status["ollama"] = "online"
+    except Exception as e:
+        logging.error(f"Ollama Status Check Failed: {e}")
+        pass
+        
+    return JSONResponse(status)
 
 @app.post("/convert")
 async def convert_files(files: List[UploadFile] = File(...)):

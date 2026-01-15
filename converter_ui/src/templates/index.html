@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 
 <head>
     <meta charset="UTF-8">
@@ -14,11 +14,14 @@
     <div class="background-glow"></div>
     <div class="container">
         <header>
+            <div class="logo-wrapper">
+                <img src="/static/logo.png" alt="Docmost Converter Logo" class="app-logo">
+            </div>
             <h1>Docmost Converter</h1>
             <p>Powered by Docling & Ollama</p>
             <div class="system-status">
-                <span class="status-indicator online" title="Docling Connected">Docling</span>
-                <span class="status-indicator online" title="Ollama Connected">Ollama</span>
+                <span class="status-indicator" id="status-docling" title="Prüfe Verbindung...">Docling Service</span>
+                <span class="status-indicator" id="status-ollama" title="Prüfe Verbindung...">Ollama AI</span>
             </div>
         </header>
 
@@ -33,23 +36,33 @@
                                 stroke-linejoin="round" />
                         </svg>
                     </div>
-                    <h2>Drag & Drop files here</h2>
-                    <p>Supported: .pdf, .docx, .xlsx</p>
+                    <h2>Dateien hier ablegen</h2>
+                    <p>Unterstützt: PDF, DOCX, XLSX</p>
                     <input type="file" id="file-input" multiple hidden>
-                    <button class="btn-primary" onclick="document.getElementById('file-input').click()">Select
-                        Files</button>
+                    <button class="btn-primary" onclick="document.getElementById('file-input').click()">Dateien
+                        wählen</button>
                 </div>
 
                 <div class="file-list" id="file-list"></div>
 
                 <div class="actions">
                     <button class="btn-convert" id="convert-btn" disabled>
-                        <span class="btn-text">Convert & Download</span>
+                        <span class="btn-text">Konvertierung starten</span>
                         <div class="spinner" id="btn-spinner"></div>
                     </button>
                 </div>
 
                 <div class="status-message" id="status-message"></div>
+
+                <div class="processing-overlay" id="processing-overlay">
+                    <div class="processing-content">
+                        <div class="spinner-large"></div>
+                        <h3>Bitte warten...</h3>
+                        <p>Dokumente werden verarbeitet.</p>
+                        <p class="sub-text">Extraktion -> KI-Optimierung -> Paketierung</p>
+                        <p class="warning-text">Bitte Fenster nicht schließen.</p>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -60,6 +73,15 @@
         const fileList = document.getElementById('file-list');
         const convertBtn = document.getElementById('convert-btn');
         const statusMessage = document.getElementById('status-message');
+        const processingOverlay = document.getElementById('processing-overlay');
+
+        // Mouse Glow Effect
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            document.documentElement.style.setProperty('--mouse-x', `${x}px`);
+            document.documentElement.style.setProperty('--mouse-y', `${y}px`);
+        });
 
         let filesToUpload = [];
 
@@ -96,12 +118,7 @@
                 item.className = 'file-item';
                 item.innerHTML = `
                     <span class="file-name">${file.name}</span>
-                    <button class="remove-btn" onclick="removeFile(${index})">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
+                    <button class="remove-btn" onclick="removeFile(${index})" title="Entfernen">✕</button>
                 `;
                 fileList.appendChild(item);
             });
@@ -121,13 +138,44 @@
             }
         }
 
+        // Status Checking
+        async function checkStatus() {
+            try {
+                const res = await fetch('/status');
+                const data = await res.json();
+
+                const doclingEl = document.getElementById('status-docling');
+                const ollamaEl = document.getElementById('status-ollama');
+
+                updateIndicator(doclingEl, data.docling);
+                updateIndicator(ollamaEl, data.ollama);
+            } catch (e) {
+                console.error("Status check failed", e);
+            }
+        }
+
+        function updateIndicator(el, status) {
+            if (status === 'online') {
+                el.classList.add('online');
+                el.classList.remove('offline');
+                el.title = "Verbunden";
+            } else {
+                el.classList.add('offline');
+                el.classList.remove('online');
+                el.title = "Nicht erreichbar";
+            }
+        }
+
+        // Poll status every 5s
+        setInterval(checkStatus, 5000);
+        checkStatus();
+
         convertBtn.addEventListener('click', async () => {
             if (filesToUpload.length === 0) return;
 
-            convertBtn.classList.add('loading');
+            // UI Block
             convertBtn.disabled = true;
-            statusMessage.textContent = 'Processing... (1. Extracting, 2. Refining, 3. Packaging)';
-            statusMessage.className = 'status-message info';
+            processingOverlay.classList.add('active');
 
             const formData = new FormData();
             filesToUpload.forEach(file => { formData.append('files', file); });
@@ -137,26 +185,29 @@
                 if (response.ok) {
                     const result = await response.json();
                     if (result.download_url) {
-                        statusMessage.textContent = 'Success! Downloading ZIP...';
+                        statusMessage.textContent = 'Erfolg! Download startet...';
                         statusMessage.className = 'status-message success';
+
+                        // Download trigger
                         window.location.href = result.download_url;
+
+                        // Reset UI after short delay
                         setTimeout(() => {
+                            processingOverlay.classList.remove('active');
                             filesToUpload = [];
                             updateFileList();
-                            convertBtn.classList.remove('loading');
                             convertBtn.disabled = true;
-                            statusMessage.textContent = 'Ready for next batch.';
-                            statusMessage.className = 'status-message';
+                            statusMessage.textContent = 'Bereit für den nächsten Auftrag.';
                         }, 2000);
                         return;
                     }
                 }
-                throw new Error('Conversion failed');
+                throw new Error('Serverfehler bei der Konvertierung');
             } catch (error) {
                 console.error(error);
-                statusMessage.textContent = 'Error during conversion. Check server logs.';
+                statusMessage.textContent = 'Fehler: ' + error.message;
                 statusMessage.className = 'status-message error';
-                convertBtn.classList.remove('loading');
+                processingOverlay.classList.remove('active');
                 convertBtn.disabled = false;
             }
         });
