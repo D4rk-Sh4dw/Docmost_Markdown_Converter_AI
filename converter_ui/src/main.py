@@ -134,12 +134,14 @@ async def process_chunk(job_id: str, file: UploadFile = File(...)):
             
         # Prepare names
         doc_name = os.path.splitext(file.filename)[0]
-        # We NO LONGER create a subfolder for the doc. We put it in root of processed_dir.
-        # But we need a unique folder for images to avoid collision.
-        img_subfolder = f"{doc_name}_images"
+        
+        # Sanitize for filesystem/url safety (images folder)
+        # We replace any non-alphanumeric char (except - and _) with _
+        safe_doc_name = re.sub(r'[^a-zA-Z0-9_-]', '_', doc_name)
+        img_subfolder = f"{safe_doc_name}_images"
         
         # 2. Image Handling
-        # This saves to processed_dir/{doc_name}_images/
+        # This saves to processed_dir/{safe_doc_name}_images/
         image_map = save_images(images_data, processed_dir, subfolder_name=img_subfolder)
         
         # Replace Docling's internal refs with our new paths
