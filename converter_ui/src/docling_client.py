@@ -11,7 +11,7 @@ class DoclingClient:
         Sends file to Docling server for processing.
         Returns tuple: (markdown_text, images_dict)
         """
-        url = f"{self.server_url}/v1/convert" # Adjusted to standard /v1/convert
+        url = f"{self.server_url}/v1/convert/source" # Based on docling-serve documentation
         # NOTE: Docling serve usually exposes /convert expecting a file.
         # Check specific docling-serve API. Assuming standard POST /v1/convert or similar.
         # If generic docling serve: likely accepts file upload.
