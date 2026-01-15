@@ -3,7 +3,7 @@ version: '3.8'
 services:
   converter-ui:
     # Use image from GitHub Container Registry
-    image: ghcr.io/d4rk-sh4dw/docmost_markdown_converter-ui:latest
+    image: ghcr.io/d4rk-sh4dw/docmost_markdown_converter_ai-ui:latest
     container_name: converter-ui
     ports:
       - "3000:3000"

@@ -9,8 +9,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  # Image name: d4rk-sh4dw/docmost_markdown_converter-ui
-  IMAGE_NAME: d4rk-sh4dw/docmost_markdown_converter-ui
+  # Image name: d4rk-sh4dw/docmost_markdown_converter_ai-ui
+  IMAGE_NAME: d4rk-sh4dw/docmost_markdown_converter_ai-ui
 
 jobs:
   build:
