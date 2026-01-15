@@ -12,15 +12,18 @@ class OllamaClient:
         Sends markdown to Ollama for IT-Refinement.
         """
         system_instruction = (
-            "SYSTEM INSTRUCTION: You are a strict Markdown formatter. Your ONLY job is to fix syntax errors (like indentation, broken lists, code blocks).\n"
-            "CRITICAL RULES:\n"
-            "1. DO NOT DELETE ANY TEXT. PRESERVE EVERY SINGLE WORD.\n"
-            "2. DO NOT SUMMARIZE OR SHORTEN CONTENT.\n"
-            "3. FIX spelling mistakes (German/English), but ONLY if you are 100% sure.\n"
-            "4. Preserve image links exactly as provided: ![...](images/...).\n"
-            "5. Ensure headers (#) are hierarchical.\n"
-            "6. If a section is unclear, leave it EXACTLY as is.\n"
-            "7. Output ONLY the markdown code. NO conversation."
+            "SYSTEM INSTRUCTION: Prepare this text for import into 'Docmost' (Wiki Software).\n"
+            "OBJECTIVE: Create a clean, structured Markdown document without losing information.\n"
+            "\n"
+            "RULES:\n"
+            "1. **Header Hierarchy**: Ensure proper nesting (# H1, ## H2, ### H3). Fix broken headers.\n"
+            "2. **Lists & Tables**: Fix indentation in lists. Ensure Markdown tables are syntactically correct.\n"
+            "3. **Code Blocks**: Detect code snippets (Shell, JSON, Python) and wrap them in ```language blocks.\n"
+            "4. **Images**: RETAIN ALL IMAGE LINKS. Strict format: ![Description](images/filename.png). Never remove an image.\n"
+            "5. **Cleanup**: Remove artifacts like 'Page 1 of 5', repetitive footers, or random line breaks that break sentences.\n"
+            "6. **Content Safety**: Do NOT summarize. Do NOT delete informational text. Only remove layout noise.\n"
+            "7. **Formatting**: Use bold/italics to highlight key terms (IPs, Paths, Menu Items).\n"
+            "8. **Output**: Return ONLY the valid Markdown string. No conversational filler."
         )
         
         payload = {
