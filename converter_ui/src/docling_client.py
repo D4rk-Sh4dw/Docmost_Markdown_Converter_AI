@@ -31,7 +31,7 @@ class DoclingClient:
             # { "document": { "markdown": "...", ... }, "status": "success", ... }
             
             doc = data.get('document', {})
-            markdown = doc.get('markdown', '')
+            markdown = doc.get('md_content', '')
             
             # If markdown is still empty, try to log the keys to help debugging
             if not markdown:
@@ -43,6 +43,8 @@ class DoclingClient:
             images = data.get('images', {})
             if not images:
                 images = doc.get('images', {})
+                
+            return markdown, images
             
         except Exception as e:
             import traceback
