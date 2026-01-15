@@ -18,7 +18,9 @@ class DoclingClient:
         try:
             with open(file_path, 'rb') as f:
                 # API expects 'files' (plural) as iter of UploadFile
-                files = {'files': f} 
+                # Using list of tuples is safer for requests to handle multiple files/lists
+                files = [('files', (os.path.basename(file_path), f, 'application/octet-stream'))]
+                
                 # Check if we need options
                 response = requests.post(url, files=files)
                 
@@ -41,7 +43,9 @@ class DoclingClient:
             return markdown, images
             
         except Exception as e:
+            import traceback
             logging.error(f"Docling extraction failed: {e}")
+            logging.error(traceback.format_exc())
             if 'response' in locals() and hasattr(response, 'text'):
                 logging.error(f"Server response: {response.text}")
             return None, {}
